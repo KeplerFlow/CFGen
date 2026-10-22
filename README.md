@@ -90,10 +90,6 @@ python src/query.py \
 
 Results are written below `logs/`. The query stage expects the phase-one files and both trained model files in `saved_models/`.
 
-## AUC Metric
-
-AUC measures how well the model ranks future edges. It can be interpreted as the probability that a randomly selected real future edge receives a higher score than a randomly selected non-edge. An AUC of `0.5` is approximately random, while `1.0` is perfect. AUC evaluates ranking across all thresholds and is different from the final community-level F1 score.
-
 ## Optional Edge Decoder
 
 The standalone edge decoder can be trained after phase-one embedding generation:
