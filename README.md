@@ -1,4 +1,4 @@
-# Temporal Graph Generation
+# Future Community Search over Large Temporal Graphs
 
 This directory contains the core implementation for temporal graph generation and future community search.
 
@@ -24,13 +24,13 @@ For large graphs, CUDA-enabled PyTorch and GPU Faiss are recommended.
 Create a `datasets/` directory next to `src/`:
 
 ```text
-cfgen_clean/
+cfgen/
 ├── datasets/
-│   ├── example/
+│   ├── dblp/
 │   │   ├── 0.txt
 │   │   ├── 1.txt
 │   │   └── ...
-│   └── example_gt.txt
+│   └── dblp_gt.txt
 ├── saved_models/
 └── src/
 ```
@@ -44,14 +44,16 @@ Each snapshot file is a whitespace-separated edge list. The filename stem must b
 
 The optional `<dataset>_gt.txt` file contains query communities used for evaluation.
 
+The repository includes a minimal DBLP subset with 27 snapshots and its `dblp_gt.txt` ground-truth file.
+
 ## Running the Pipeline
 
-Run all commands from the `cfgen_clean/` directory.
+Run all commands from the `cfgen/` directory.
 
 ### 1. Coarsening and embedding generation
 
 ```bash
-python src/main.py --dataset example --ratio 0.95
+python src/main.py --dataset dblp --ratio 0.95
 ```
 
 This creates the phase-one data and coarse/golden embedding files in `saved_models/`.
@@ -60,7 +62,7 @@ This creates the phase-one data and coarse/golden embedding files in `saved_mode
 
 ```bash
 python src/train.py \
-  --dataset example \
+  --dataset dblp \
   --batch_size 2048 \
   --horizons 1
 ```
@@ -71,7 +73,7 @@ Use a comma-separated list for multiple forecast horizons, for example `--horizo
 
 ```bash
 python src/train_refinement.py \
-  --dataset example \
+  --dataset dblp \
   --batch_size 2048
 ```
 
@@ -79,7 +81,7 @@ python src/train_refinement.py \
 
 ```bash
 python src/query.py \
-  --dataset example \
+  --dataset dblp \
   --diff_steps 20 \
   --num_queries 1000 \
   --query_size 1 \
@@ -88,13 +90,17 @@ python src/query.py \
 
 Results are written below `logs/`. The query stage expects the phase-one files and both trained model files in `saved_models/`.
 
+## AUC Metric
+
+AUC measures how well the model ranks future edges. It can be interpreted as the probability that a randomly selected real future edge receives a higher score than a randomly selected non-edge. An AUC of `0.5` is approximately random, while `1.0` is perfect. AUC evaluates ranking across all thresholds and is different from the final community-level F1 score.
+
 ## Optional Edge Decoder
 
 The standalone edge decoder can be trained after phase-one embedding generation:
 
 ```bash
 python src/train_edge_decoder.py \
-  --dataset example \
+  --dataset dblp \
   --device cuda \
   --epochs 12 \
   --horizons 1
